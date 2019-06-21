@@ -48,8 +48,8 @@ def last_bars_extremum(symbol, number, side):
 
 
 def check_anchor_chart(symbol, side):
-    ma8 = get_ma_value(symbol, '1H', '8')
-    ma21 = get_ma_value(symbol, '1H', '21')
+    ma8 = get_ma_value(symbol, '1H', 8)
+    ma21 = get_ma_value(symbol, '1H', 21)
 
     current_candle_high = float(get_current_candle(symbol, '1H')[2])
     current_candle_low = float(get_current_candle(symbol, '1H')[3])
@@ -75,8 +75,8 @@ def launch(symbol):
 
         while is_allowed(symbol):
             risk_threshold = 2.1 * int(get_current_price(symbol, 'bid') * (TRADE_FEE / 100) * 2 / pip)
-            ma8 = get_ma_value(symbol, '5M', '8')
-            ma21 = get_ma_value(symbol, '5M', '21')
+            ma8 = get_ma_value(symbol, '5M', 8)
+            ma21 = get_ma_value(symbol, '5M', 21)
 
             current_candle_open = float(get_current_candle(symbol, '5M')[1])
             current_candle_close = float(get_current_candle(symbol, '5M')[4])
@@ -89,7 +89,7 @@ def launch(symbol):
                     current_candle = get_current_candle(symbol, '5M')
                     current_candle_low = float(current_candle[3])
                     current_candle_close = float(current_candle[4])
-                    ma8 = get_ma_value(symbol, '5M', '8')
+                    ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_close < ma8:
                         # to_log(symbol, 'Trigger bar for BUY')
@@ -124,7 +124,7 @@ def launch(symbol):
                     current_candle = get_current_candle(symbol, '5M')
                     current_candle_open = float(current_candle[1])
                     current_candle_high = float(current_candle[2])
-                    ma8 = get_ma_value(symbol, '5M', '8')
+                    ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_open > ma8:
                         # to_log(symbol, 'Trigger bar for SELL')

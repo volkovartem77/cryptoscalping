@@ -185,7 +185,7 @@
   "max_log_length": 5000,
   "email_login_yandex": "bot.crypto.scalping@yandex.ru",
   "email_password_yandex": "cryptoscalping2019",
-  "destination_address": "volckov.tyoma@gmail.com",
+  "destination_address": "byronkats96@gmail.com",
   "notifications_schedule_utc": [
     "5:01",
     "17:01"
