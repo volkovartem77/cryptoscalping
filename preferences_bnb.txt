@@ -1,6 +1,6 @@
 {
-  "api_key": "6WFOxx7FXLfpKvWjLWUBDCe2fomZOuvC7nH5JhwBX03q2HS9NlQ4WkK0stULJqK7",
-  "secret_key": "UBdC1b2YEIGzZzbga9XrFRGnXtZzixPg1PEfVfdAZkgjImU5PytmXV03mZAhUT9M",
+  "api_key": "bbbb",
+  "secret_key": "bbbb",
   "symbols": [
     "BNBBTC",
     "BNBETH",
