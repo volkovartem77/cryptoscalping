@@ -34,10 +34,10 @@ def is_cancel(symbol, side):
     current_candle_close = float(get_current_candle(symbol, '5M')[4])
 
     if side == 'buy':
-        if min(current_candle_open, current_candle_close) < get_ma_value(symbol, '5M', '21'):
+        if min(current_candle_open, current_candle_close) < get_ma_value(symbol, '5M', 21):
             return True
     else:
-        if max(current_candle_open, current_candle_close) > get_ma_value(symbol, '5M', '21'):
+        if max(current_candle_open, current_candle_close) > get_ma_value(symbol, '5M', 21):
             return True
     return False
 
