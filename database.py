@@ -12,6 +12,37 @@ def get_trades():
     return list(Trade.select().dicts())
 
 
+# def get_total_profit_for_pair(symbol):
+#     buy_prices = Trade.select(Trade.price).where(Trade.symbol == symbol, Trade.side == 'BUY').dicts()
+#     sell_prices = Trade.select(Trade.price).where(Trade.symbol == symbol, Trade.side == 'SELL').dicts()
+#     if len(buy_prices) <= 0 or len(sell_prices) <= 0:
+#         return
+#
+#     buy_prices = list(price['price'] for price in buy_prices)
+#     sell_prices = list(price['price'] for price in sell_prices)
+#
+#     buy_prices_average = sum(buy_prices) / len(buy_prices)
+#     sell_prices_average = sum(sell_prices) / len(sell_prices)
+#
+#     price_difference = max(buy_prices_average, sell_prices_average) - min(buy_prices_average, sell_prices_average)
+#
+#     buy_qty = Trade.select(Trade.quantity).where(Trade.symbol == symbol, Trade.side == 'BUY').dicts()
+#     sell_qty = Trade.select(Trade.quantity).where(Trade.symbol == symbol, Trade.side == 'SELL').dicts()
+#     if len(buy_qty) <= 0 or len(sell_qty) <= 0:
+#         return
+#
+#     buy_qty = list(qty['quantity'] for qty in buy_qty)
+#     sell_qty = list(qty['quantity'] for qty in sell_qty)
+#
+#     buy_qty_sum = sum(buy_qty)
+#     sell_qty_sum = sum(sell_qty)
+#
+#     executed_qty = min(buy_qty_sum, sell_qty_sum)
+#     print(executed_qty, price_difference)
+#     profit = price_difference * executed_qty
+#
+#     return profit
+
 def get_total_profit_for_pair(symbol):
     buy_prices = Trade.select(Trade.price).where(Trade.symbol == symbol, Trade.side == 'BUY').dicts()
     sell_prices = Trade.select(Trade.price).where(Trade.symbol == symbol, Trade.side == 'SELL').dicts()
@@ -24,7 +55,7 @@ def get_total_profit_for_pair(symbol):
     buy_prices_average = sum(buy_prices) / len(buy_prices)
     sell_prices_average = sum(sell_prices) / len(sell_prices)
 
-    price_difference = max(buy_prices_average, sell_prices_average) - min(buy_prices_average, sell_prices_average)
+    price_difference = sell_prices_average / buy_prices_average
 
     buy_qty = Trade.select(Trade.quantity).where(Trade.symbol == symbol, Trade.side == 'BUY').dicts()
     sell_qty = Trade.select(Trade.quantity).where(Trade.symbol == symbol, Trade.side == 'SELL').dicts()
@@ -38,7 +69,7 @@ def get_total_profit_for_pair(symbol):
     sell_qty_sum = sum(sell_qty)
 
     executed_qty = min(buy_qty_sum, sell_qty_sum)
-    profit = price_difference * executed_qty
+    profit = (price_difference - 1) * executed_qty
 
     return profit
 
@@ -68,6 +99,7 @@ def get_total_profit(measure):
             continue
         asset = split_symbol(pair)['base']
         preferred_wallet_quantity = convert(asset, profit, PREF_WALL)
+        # print(pair, '{0:.10f}'.format(profit), 'in BTC:', '{0:.10f}'.format(preferred_wallet_quantity))
         measure_quantity.append(convert(PREF_WALL, preferred_wallet_quantity, measure))
 
     return sum(measure_quantity)

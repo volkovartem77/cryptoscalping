@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from config import ROOT_PASS, E_LOGIN, E_ADDRESS, E_PASS, PREF_WALL, E_SCHEDULE, E_TIME_RANGE
-from database import get_trades, convert
+from database import get_trades, convert, get_total_profit, get_total_fees
 from utils import split_symbol, get_rsi_value
 
 
@@ -67,7 +67,8 @@ def send_email(trades):
     html = """\
     <html>
       <body>
-        <p>Hi, over the past 12 hours, the bot made the following trades<p>
+        <p>Over the past 12 hours, the bot made {} USDT and spend {} USDT for fees<p>
+        <p>The bot made the following trades<p>
         <div>
           <tr>
             <td><h3>Asset</h3></td>
@@ -87,7 +88,7 @@ def send_email(trades):
         </div>
       </body>
     </html>
-    """.format(component, statuses)
+    """.format('{0:.4f}'.format(get_total_profit('USDT')), '{0:.4f}'.format(get_total_fees(PREF_WALL, 'USDT')), component, statuses)
 
     # Turn these into plain/html MIMEText objects
     part1 = MIMEText(text, "plain")
