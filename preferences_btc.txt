@@ -1,6 +1,6 @@
 {
-  "api_key": "nnn",
-  "secret_key": "nnn",
+  "api_key": "INbgc8AS9dtLVDTZZ9MulP1fjevqnwRcGCi6p8XSdUmgw2m3fdLqpj0mhDnj6Mg4",
+  "secret_key": "yvf24rcxSjQ1XtgUE2rnYesI27rX645iIXvAbA9T71dcyq5YP3YOeqVMKUQ80G5B",
   "symbols": [
     "ETHBTC",
     "LTCBTC",

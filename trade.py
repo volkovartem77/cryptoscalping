@@ -43,7 +43,8 @@ def is_cancel(symbol, side):
 
 
 def execute_stop_loss(symbol, side):
-    return False if side == 'buy' and symbol in IGNORE_SL else True
+    return False if symbol in IGNORE_SL else True
+    # return False if side == 'buy' and symbol in IGNORE_SL else True
 
 
 def place_market_order(symbol, side, quantity):
