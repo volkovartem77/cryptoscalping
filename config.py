@@ -47,6 +47,8 @@ E_ADDRESS = get_preferences()['destination_address']
 E_SCHEDULE = get_preferences()['notifications_schedule_utc']
 E_TIME_RANGE = get_preferences()['time_range']
 RSI_PERIOD = get_preferences()['rsi_period']
+PERCENT_TP = get_preferences()['percent_tp']
+PERCENT_SL = get_preferences()['percent_sl']
 
 # Mem cache keys
 GENERAL_LOG = 'general_log' + PREF_WALL
@@ -54,6 +56,7 @@ TICKERS = 'tickers' + PREF_WALL
 EXCHANGE_INFO = 'exchange_info' + PREF_WALL
 BALANCE = 'BinanceBalance' + PREF_WALL
 RUN_MONITOR_FLAG = 'run_monitor' + MARKET
+ORDERS_INFO = 'ORDERS_INFO'
 
 # Logging
 LOG_PATH = PROJECT_PATH + 'log/'

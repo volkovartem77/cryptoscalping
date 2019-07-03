@@ -117,3 +117,5 @@ dmypy.json
 
 storage.db
 test.py
+monitor_1.py
+trade_1.py

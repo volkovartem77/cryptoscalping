@@ -10,7 +10,7 @@ from pyti.stochrsi import stochrsi as rsi
 from pyti.simple_moving_average import simple_moving_average as sma
 
 from config import ERR_LOG_PATH, GENERAL_LOG, LOG_LENGTH, TICKERS, DATABASE, RSI_PERIOD, PREF_WALL, VOLUME_THRESHOLD, \
-    EXCHANGE_INFO, BALANCE, MIN_QTY
+    EXCHANGE_INFO, BALANCE, MIN_QTY, ORDERS_INFO
 from models import Trade
 
 
@@ -259,3 +259,53 @@ def save_trade(signal_type, signal_id, order, trade_type):
             date_create=int(time.time())
         )
         trade.save()
+
+
+def format_status(status):
+    if status == 'NEW':
+        return False
+    if status == 'FILLED':
+        return True
+    if status == 'CANCELED':
+        return True
+    if status == 'PARTIALLY_FILLED':
+        return False
+    if status == 'REJECTED':
+        return True
+
+
+def get_orders_info(exchange):
+    return json.loads(DATABASE.get(exchange + ':' + ORDERS_INFO))
+
+
+def set_orders_info(exchange):
+    DATABASE.set(exchange + ':' + ORDERS_INFO, json.dumps({}))
+
+
+def update_orders_info(exchange, order_id, symbol, side, status, price, amount, date, timestamp):
+    orders = get_orders_info(exchange)
+
+    orders.update({
+        order_id: {
+            'symbol': symbol,
+            'side': side,
+            'status': status,
+            'price': price,
+            'amount': amount,
+            'date': date,
+            'timestamp': timestamp
+        }
+    })
+    DATABASE.set(exchange + ':' + ORDERS_INFO, json.dumps(orders))
+
+
+def remove_orders_info(exchange, order_id):
+    orders = get_orders_info(exchange)
+    orders.pop(order_id, None)
+    DATABASE.set(exchange + ':' + ORDERS_INFO, json.dumps(orders))
+
+
+def is_order_filled(exchange, order_id):
+    orders = get_orders_info(exchange)
+    if str(order_id) in orders:
+        return orders[str(order_id)]['status']

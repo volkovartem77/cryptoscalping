@@ -1,6 +1,6 @@
 {
-  "api_key": "xWOIYUL5ZCpo6wMuVkspFuz8xmpqIVMrbCImvLKQeosedTtZKHnblQlr28FphCRN",
-  "secret_key": "vlZEamXxc0Krg8aTXhVvi88aGcrATdU3Z8VQNF5kIF6Nd9kkyTZKAhUjR2FKnMzE",
+  "api_key": "IMVcil9h1VwMquFApFoLxcny8byRn2nzMVAfQtYYyG10OECegotREflagxu9l8FD",
+  "secret_key": "rmJpIWaGhptYxFe8egz0VbwbekvBWIbprSF9JISaKotG3fOuxBfhhBgMgeRPGX6T",
   "symbols": [
     "BNBBTC",
     "BNBETH",
@@ -128,5 +128,7 @@
     "17:00"
   ],
   "time_range": 12,
-  "rsi_period": 8
+  "rsi_period": 8,
+  "percent_tp": 4.5,
+  "percent_sl": 2
 }

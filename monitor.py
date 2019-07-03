@@ -87,21 +87,20 @@ def launch(symbol):
                 # waiting trigger bar for BUY
                 while True:
                     current_candle = get_current_candle(symbol, '5M')
-                    current_candle_low = float(current_candle[3])
                     current_candle_close = float(current_candle[4])
                     ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_close < ma8:
                         # to_log(symbol, 'Trigger bar for BUY')
 
-                        # Stop loss = 3 pips below trigger bar low
-                        stop_loss = current_candle_low - (30 * pip)
                         # Buy stop = 3 pips above high last 5 bars
                         entrance_point = round(last_bars_extremum(symbol, 5, 'buy') + (30 * pip), price_precision)
+                        # Stop loss = 3 pips below trigger bar low
+                        stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
                         # initial risk R
                         risk = round(entrance_point - stop_loss, price_precision)
                         # TP = risk X 1
-                        take_profit = round(entrance_point + risk, price_precision)
+                        take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
 
                         if risk < risk_threshold * pip:
                             # to_log(symbol, 'Risk is too low. {} < {}'.format(risk, risk_threshold))
@@ -123,21 +122,20 @@ def launch(symbol):
                 while True:
                     current_candle = get_current_candle(symbol, '5M')
                     current_candle_open = float(current_candle[1])
-                    current_candle_high = float(current_candle[2])
                     ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_open > ma8:
                         # to_log(symbol, 'Trigger bar for SELL')
 
-                        # Stop loss = 3 pips above trigger bar high
-                        stop_loss = current_candle_high + (30 * pip)
                         # Sell stop = 3 pips below low last 5 bars
                         entrance_point = round(last_bars_extremum(symbol, 5, 'sell') - (30 * pip),
                                                price_precision)
+                        # Stop loss = 3 pips above trigger bar high
+                        stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
                         # initial risk R
                         risk = round(stop_loss - entrance_point, price_precision)
                         # TP1 = risk X 1
-                        take_profit = round(entrance_point - risk, price_precision)
+                        take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
 
                         if risk < risk_threshold * pip:
                             # to_log(symbol, 'Risk is too low. {} < {}'.format(risk, risk_threshold))

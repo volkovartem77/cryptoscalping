@@ -1,3 +1,5 @@
+import json
+
 from config import SYMBOLS, PREF_WALL
 from models import Trade
 from utils import split_symbol, get_current_price
@@ -99,7 +101,7 @@ def get_total_profit(measure):
             continue
         asset = split_symbol(pair)['base']
         preferred_wallet_quantity = convert(asset, profit, PREF_WALL)
-        # print(pair, '{0:.10f}'.format(profit), 'in BTC:', '{0:.10f}'.format(preferred_wallet_quantity))
+        # print(pair, '{0:.10f}'.format(profit), f'{asset}   ', '{0:.10f}'.format(preferred_wallet_quantity), PREF_WALL)
         measure_quantity.append(convert(PREF_WALL, preferred_wallet_quantity, measure))
 
     return sum(measure_quantity)
@@ -110,12 +112,15 @@ def get_total_fees(asset_fees, measure):
     return convert(asset_fees, fees, measure)
 
 
+
+
+
 # print(get_total_fees_for_asset('BNB'))
 # print(get_total_profit_for_pair('NEOBNB'))
 # print(get_total_profit_for_pair('BNBBTC'))
 # print(get_total_profit_for_pair('BNBETH'))
 
-# print(get_total_profit('USDT', Client(('127.0.0.1', 11211))))
+# print(get_total_profit('USDT'))
 # print(get_total_fees('BNB', 'USDT', Client(('127.0.0.1', 11211))))
 
 # bnb = convert('ETH', 0.01, 'BNB', Client(('127.0.0.1', 11211)))

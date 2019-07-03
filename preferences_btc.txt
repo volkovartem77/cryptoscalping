@@ -191,5 +191,7 @@
     "17:01"
   ],
   "time_range": 12,
-  "rsi_period": 8
+  "rsi_period": 8,
+  "percent_tp": 4.5,
+  "percent_sl": 2
 }
