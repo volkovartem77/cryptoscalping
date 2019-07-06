@@ -100,7 +100,7 @@ def launch(symbol):
                         # initial risk R
                         risk = round(entrance_point - stop_loss, price_precision)
                         # TP = risk X 1
-                        take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
+                        take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
 
                         if risk < risk_threshold * pip:
                             # to_log(symbol, 'Risk is too low. {} < {}'.format(risk, risk_threshold))
