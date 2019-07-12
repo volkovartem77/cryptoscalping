@@ -102,15 +102,26 @@ sudo supervisorctl status
 ```
 
 
-## Usefull commands
+## Useful commands
 
+Generate log file
 ```
-sudo supervisorctl tail -5000 wsBinance stderr
-sudo supervisorctl status
-cd ~/cryptoscalping_btc; . venv/bin/activate
-sudo nano /var/log/cryptoscalping_btc/wsBinance_err.log
+cd ~/cryptoscalping_btc; . venv/bin/activate; python generate_log_file.py; deactivate
 ```
 
+Download log file
+```
+scp root@165.22.107.205:/root/cryptoscalping_btc/log/general.log ./
+```
 
+Download errors file
+```
+scp root@165.22.107.205:/root/cryptoscalping_btc/log/errors.log ./
+```
+
+Download storage.db (all trades made)
+```
+scp root@165.22.107.205:/root/cryptoscalping_btc/storage.db ./
+```
 
 
