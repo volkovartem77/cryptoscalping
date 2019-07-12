@@ -187,8 +187,8 @@
   "email_password_yandex": "cryptoscalping2019",
   "destination_address": "byronkats96@gmail.com",
   "notifications_schedule_utc": [
-    "5:01",
-    "17:01"
+    "5:05",
+    "17:05"
   ],
   "time_range": 12,
   "rsi_period": 8,

@@ -6,7 +6,7 @@ import traceback
 import websocket
 
 from config import DATABASE, BINANCE, EXCHANGE_INFO, TICKERS, RUN_MONITOR_FLAG, SYMBOLS
-from utils import to_general_log
+from utils import to_general_log, update_price_change_percent, init_price_change_percent
 
 
 def mem_cache_init_pusher():
@@ -70,9 +70,12 @@ def on_message(ws, message):
             if bool(kline['x']):
                 update_history(symbol, kline['i'], kline)
 
-        if '@depth5' in stream:
+        if '@ticker' in stream:
             symbol = stream.split('@')[0].upper()
-            DATABASE.set(symbol, json.dumps({'bid': data['bids'][0][0], 'ask': data['asks'][0][0]}))
+            DATABASE.set(symbol, json.dumps({'bid': data['b'], 'ask': data['a']}))
+            update_price_change_percent(symbol, data['P'])
+            # if symbol == 'BNBBTC':
+            #     print(symbol, json.dumps({'bid': data['b'], 'ask': data['a']}))
 
     except KeyboardInterrupt:
         pass
@@ -93,6 +96,7 @@ def on_open(ws):
     print('### opened ###')
     mem_cache_init_pusher()
     for symbol in SYMBOLS:
+        init_price_change_percent(symbol)
         mem_cache_init(symbol)
     DATABASE.set(RUN_MONITOR_FLAG, 'True')
     print('### monitor is allowed ###')
@@ -110,7 +114,7 @@ def launch():
             for symbol in SYMBOLS:
                 subs += symbol.lower() + '@kline_1h/'
                 subs += symbol.lower() + '@kline_5m/'
-                subs += symbol.lower() + '@depth5/'
+                subs += symbol.lower() + '@ticker/'
                 count += 1
             if subs != '':
                 print(f'{count} pairs')

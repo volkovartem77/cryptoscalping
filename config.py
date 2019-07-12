@@ -56,12 +56,16 @@ TICKERS = 'tickers' + PREF_WALL
 EXCHANGE_INFO = 'exchange_info' + PREF_WALL
 BALANCE = 'BinanceBalance' + PREF_WALL
 RUN_MONITOR_FLAG = 'run_monitor' + MARKET
-ORDERS_INFO = 'ORDERS_INFO'
+ORDERS_INFO = 'ORDERS_INFO' + PREF_WALL
+PRICE_CHANGE_PERCENT = 'PRICE_CHANGE_PERCENT' + PREF_WALL
 
 # Logging
 LOG_PATH = PROJECT_PATH + 'log/'
 ERR_LOG_PATH = LOG_PATH + 'errors.log'
 CONF_PATH = PROJECT_PATH + PROJECT_FOLDER + '.conf'
+
+# Constants
+PRICE_CHANGE_PERCENT_DIFFERENCE_TIME_RANGE = 300
 
 # Other
 DATABASE = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)

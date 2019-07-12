@@ -45,6 +45,8 @@ def send_email(trades):
                 <td>{}</td>
                 <td>{}</td>
                 <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
             </tr>'''.format(
             trade['asset'],
             trade['b_price'],
@@ -54,7 +56,9 @@ def send_email(trades):
             trade['rsi_5m_entry'],
             trade['rsi_1h_entry'],
             trade['rsi_5m_exit'],
-            trade['rsi_1h_exit']
+            trade['rsi_1h_exit'],
+            trade['price_change_percent_difference_entry'],
+            trade['price_change_percent_difference_exit']
         )
         component += block
 
@@ -80,6 +84,8 @@ def send_email(trades):
             <td><h3>RSI 1H Entry</h3></td>
             <td><h3>RSI 5M Exit</h3></td>
             <td><h3>RSI 1H Exit</h3></td>
+            <td><h3>Price change % diff Entry</h3></td>
+            <td><h3>Price change % diff Exit</h3></td>
           </tr>
           {}
         </div>
@@ -123,6 +129,8 @@ def make_stats(hours):
         s_rsi_1h_entry = 0
         s_rsi_5m_exit = 0
         s_rsi_1h_exit = 0
+        price_change_percent_difference_entry = 0
+        price_change_percent_difference_exit = 0
         for trade in trades:
             if trade['signal_id'] == signal:
                 s_symbol = trade['symbol']
@@ -135,11 +143,13 @@ def make_stats(hours):
                 if trade['type'] == 'SL':
                     is_stop_loss = True
                 if trade['type'] == 'Entry':
-                    s_rsi_5m_entry = str(get_rsi_value(s_symbol, '5M'))
-                    s_rsi_1h_entry = str(get_rsi_value(s_symbol, '1H'))
+                    s_rsi_5m_entry = str(trade['rsi_5m'])
+                    s_rsi_1h_entry = str(trade['rsi_1h'])
+                    price_change_percent_difference_entry = str(trade['price_change_percent_difference'])
                 if trade['type'] == 'SL' or trade['type'] == 'TP':
-                    s_rsi_5m_exit = str(get_rsi_value(s_symbol, '5M'))
-                    s_rsi_1h_exit = str(get_rsi_value(s_symbol, '1H'))
+                    s_rsi_5m_exit = str(trade['rsi_5m'])
+                    s_rsi_1h_exit = str(trade['rsi_1h'])
+                    price_change_percent_difference_exit = str(trade['price_change_percent_difference'])
 
         if s_time >= timestamp:
             s_buy_price = statistics.mean(buy_prices) if buy_prices != [] else 0
@@ -154,7 +164,9 @@ def make_stats(hours):
                 'rsi_5m_entry': s_rsi_5m_entry,
                 'rsi_1h_entry': s_rsi_1h_entry,
                 'rsi_5m_exit': s_rsi_5m_exit,
-                'rsi_1h_exit': s_rsi_1h_exit
+                'rsi_1h_exit': s_rsi_1h_exit,
+                'price_change_percent_difference_entry': price_change_percent_difference_entry,
+                'price_change_percent_difference_exit': price_change_percent_difference_exit
             })
     return signals_list
 
@@ -184,3 +196,4 @@ if __name__ == '__main__':
 # stats = make_stats(E_TIME_RANGE,  redis.StrictRedis(host='localhost', port=6379, decode_responses=True))
 # send_email(stats)
 # print(get_supervisor_status())
+# print(make_stats(1200))

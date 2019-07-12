@@ -6,7 +6,7 @@ import models
 from config import *
 from trade import place_pending_order
 from utils import get_candles, get_current_candle, get_ma_value, is_allowed, get_pip, get_current_price, \
-    get_precision, to_general_log, to_err_log, clear_general_log
+    get_precision, to_general_log, to_err_log, clear_general_log, init_price_change_percent
 
 
 def is_allowed_to_run():
@@ -29,9 +29,8 @@ def check_the_last_order(symbol, side, price):
     return True
 
 
-def new_signal_report(symbol, side, risk, entrance_point, stop_loss, take_profit):
-    text = 'NEW SIGNAL > {} {} risk: {}, entrance: {}, SL: {}, TP: {}' \
-        .format(side, symbol, risk, entrance_point, stop_loss, take_profit, take_profit)
+def new_signal_report(symbol, side, entrance_point, stop_loss, take_profit):
+    text = 'NEW SIGNAL > {} {} at {}, SL: {}, TP: {}'.format(side, symbol, entrance_point, stop_loss, take_profit)
     to_general_log(symbol, text)
 
 
@@ -74,7 +73,6 @@ def launch(symbol):
         to_general_log(symbol, 'Start monitoring')
 
         while is_allowed(symbol):
-            risk_threshold = 2.1 * int(get_current_price(symbol, 'bid') * (TRADE_FEE / 100) * 2 / pip)
             ma8 = get_ma_value(symbol, '5M', 8)
             ma21 = get_ma_value(symbol, '5M', 21)
 
@@ -91,26 +89,11 @@ def launch(symbol):
                     ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_close < ma8:
-                        # to_log(symbol, 'Trigger bar for BUY')
-
-                        # Buy stop = 3 pips above high last 5 bars
                         entrance_point = round(last_bars_extremum(symbol, 5, 'buy') + (30 * pip), price_precision)
-                        # Stop loss = 3 pips below trigger bar low
                         stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
-                        # initial risk R
-                        risk = round(entrance_point - stop_loss, price_precision)
-                        # TP = risk X 1
                         take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
 
-                        if risk < risk_threshold * pip:
-                            # to_log(symbol, 'Risk is too low. {} < {}'.format(risk, risk_threshold))
-                            break
-
-                        if check_the_last_order(symbol, 'BUY', entrance_point) is False:
-                            break
-
-                        # trigger_bar_report(symbol, stop_loss, entrance_point, risk, take_profit)
-                        new_signal_report(symbol, 'BUY', risk, entrance_point, stop_loss, take_profit)
+                        new_signal_report(symbol, 'BUY', entrance_point, stop_loss, take_profit)
 
                         place_pending_order(symbol, 'buy', entrance_point, stop_loss, take_profit, precision)
                         break
@@ -125,27 +108,11 @@ def launch(symbol):
                     ma8 = get_ma_value(symbol, '5M', 8)
 
                     if current_candle_open > ma8:
-                        # to_log(symbol, 'Trigger bar for SELL')
-
-                        # Sell stop = 3 pips below low last 5 bars
-                        entrance_point = round(last_bars_extremum(symbol, 5, 'sell') - (30 * pip),
-                                               price_precision)
-                        # Stop loss = 3 pips above trigger bar high
+                        entrance_point = round(last_bars_extremum(symbol, 5, 'sell') - (30 * pip), price_precision)
                         stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
-                        # initial risk R
-                        risk = round(stop_loss - entrance_point, price_precision)
-                        # TP1 = risk X 1
                         take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
 
-                        if risk < risk_threshold * pip:
-                            # to_log(symbol, 'Risk is too low. {} < {}'.format(risk, risk_threshold))
-                            break
-
-                        if check_the_last_order(symbol, 'BUY', entrance_point) is False:
-                            break
-
-                        # trigger_bar_report(symbol, stop_loss, entrance_point, risk, take_profit)
-                        new_signal_report(symbol, 'SELL', risk, entrance_point, stop_loss, take_profit)
+                        new_signal_report(symbol, 'SELL', entrance_point, stop_loss, take_profit)
 
                         place_pending_order(symbol, 'sell', entrance_point, stop_loss, take_profit, precision)
                         break

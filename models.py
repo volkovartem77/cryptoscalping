@@ -23,6 +23,7 @@ class Trade(Model):
     type = TextField(null=True)
     rsi_5m = FloatField(null=True)
     rsi_1h = FloatField(null=True)
+    price_change_percent_difference = FloatField(null=True)
     order_timestamp = IntegerField(null=True)
     date_create = IntegerField(default=int(time.time()))
 

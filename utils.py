@@ -10,7 +10,7 @@ from pyti.stochrsi import stochrsi as rsi
 from pyti.simple_moving_average import simple_moving_average as sma
 
 from config import ERR_LOG_PATH, GENERAL_LOG, LOG_LENGTH, TICKERS, DATABASE, RSI_PERIOD, PREF_WALL, VOLUME_THRESHOLD, \
-    EXCHANGE_INFO, BALANCE, MIN_QTY, ORDERS_INFO
+    EXCHANGE_INFO, BALANCE, MIN_QTY, ORDERS_INFO, PRICE_CHANGE_PERCENT, PRICE_CHANGE_PERCENT_DIFFERENCE_TIME_RANGE
 from models import Trade
 
 
@@ -89,11 +89,15 @@ def round_dwn(value, param=1):
         to_err_log(f'value: {value}, param: {param}', traceback.format_exc())
 
 
+def round_up(value, param=1):
+    return int(value) if param == 0 else math.ceil(value * math.pow(10, param)) / math.pow(10, param)
+
+
 def get_balance2(asset):
     balances = DATABASE.get(BALANCE)
     if balances is not None:
         balances = json.loads(balances)
-        print(balances)
+        # print(balances)
         for balance in balances:
             if balance['asset'] == asset:
                 return float(balance['free'])
@@ -163,29 +167,27 @@ def get_rsi_value(symbol, time_frame):
         to_err_log(symbol, f'{time_frame}', traceback.format_exc())
 
 
-def check_quantity(symbol, min_quantity, balance, min_notional, quantity_quote, asset, quantity_base, base):
-    if min_quantity > balance:
-        to_general_log(symbol, 'Not enough balance. {} {} Required {} {}'.format(balance, asset, min_quantity, asset))
-        return False
-
-    if quantity_quote < min_notional:
-        to_general_log(symbol, 'Quantity is too low. {} {} Rise minimal BNB quantity'.format(quantity_base, base))
-        return False
-    return True
-
-
-def get_qty(symbol, side, quantity, cumulative_quote_qty, precision):
-    to_general_log(symbol, 'get_qty: {} quantity {} precision {}'.format(side, quantity, precision))
-    if side == 'sell' and get_symbol_type(symbol):
-        ask_price = get_current_price(symbol, 'ask')
-        if ask_price is None:
-            return
-        quantity = cumulative_quote_qty / ask_price
+def get_qty(symbol, signal_side, quantity, cumulative_quote_qty, price, precision):
+    to_general_log(symbol, 'get_qty: signal {}; quantity {}; precision {}'.format(signal_side, quantity, precision))
+    if signal_side == 'sell' and get_symbol_type(symbol):  # BNB BTC
+        quantity = cumulative_quote_qty / price
     return round_dwn(quantity, precision)
 
 
 def get_symbol_type(symbol):
     return split_symbol(symbol)['base'] == PREF_WALL
+
+
+def normalize_symbol(asset1, asset2):
+    exchange_info = DATABASE.get(EXCHANGE_INFO)
+    if exchange_info is None:
+        return
+    exchange_info = json.loads(exchange_info)
+    symbols = list(x['symbol'] for x in exchange_info['symbols'])
+    if asset1 + asset2 in symbols:
+        return asset1 + asset2
+    if asset2 + asset1 in symbols:
+        return asset2 + asset1
 
 
 def get_quantity(symbol, side):
@@ -196,41 +198,70 @@ def get_quantity(symbol, side):
 
     if side == 'buy':
         ask_price = get_current_price(symbol, 'ask')
+        min_limit = round_up(min_notional / ask_price, precision)  # in base currency
         balance_quote = get_balance2(quote)
-        print('BUY balance_quote', balance_quote)
 
-        if quote == PREF_WALL:
-            min_quantity = round(MIN_QTY, 8)
-            quantity_quote = min_quantity
-        else:
+        if get_symbol_type(symbol):  # BNB BTC
+            if MIN_QTY < min_limit:
+                to_general_log(symbol,
+                               'Minimal quantity ({} {}) is too low. Rise minimal BNB quantity up to {} {} at least'
+                               .format(MIN_QTY, base, "{0:.8f}".format(min_limit), base))
+                return
             min_quantity = round(MIN_QTY * ask_price, 8)
             quantity_quote = balance_quote
+        else:  # LTC BNB
+            if round_dwn(MIN_QTY / ask_price, precision) < min_limit:
+                to_general_log(symbol,
+                               'Minimal quantity ({} {}) is too low. Rise minimal BNB quantity up to {} {} at least'
+                               .format(MIN_QTY, quote,
+                                       "{0:.8f}".format(round_up(min_limit * ask_price, precision)), quote))
+                return
+            min_quantity = MIN_QTY
+            quantity_quote = min_quantity
 
         quantity_base = round_dwn(quantity_quote / ask_price, precision)
 
-        if check_quantity(symbol, min_quantity, balance_quote, min_notional,
-                          quantity_quote, quote, quantity_base, base):
-            print('quantity_base', quantity_base)
+        if balance_quote > min_quantity:
             return quantity_base
+        else:
+            to_general_log(symbol, 'Not enough balance. You have {} {}, but required {} {} at least'
+                           .format("{0:.8f}".format(balance_quote), quote, "{0:.8f}".format(min_quantity), quote))
 
     if side == 'sell':
         bid_price = get_current_price(symbol, 'bid')
+        min_limit = round_up(min_notional / bid_price, precision)  # in base currency
         balance_base = get_balance2(base)
-        print('SELL balance_base', balance_base)
 
-        if quote == PREF_WALL:
-            min_quantity = round(MIN_QTY / bid_price, 8)
-            quantity_base = round_dwn(balance_base, precision)
-        else:
+        if get_symbol_type(symbol):  # BNB BTC
+            if MIN_QTY < min_limit:
+                to_general_log(symbol,
+                               'Minimal quantity ({} {}) is too low. Rise minimal BNB quantity up to {} {} at least'
+                               .format(MIN_QTY, base, "{0:.8f}".format(min_limit), base))
+                return
             min_quantity = round(MIN_QTY, 8)
             quantity_base = round_dwn(min_quantity, precision)
+        else:  # LTC BNB
+            if round_dwn(MIN_QTY / bid_price, precision) < min_limit:
+                to_general_log(symbol,
+                               'Minimal quantity ({} {}) is too low. Rise minimal BNB quantity up to {} {} at least'
+                               .format(MIN_QTY, quote,
+                                       "{0:.8f}".format(round_up(min_limit * bid_price, precision)), quote))
+                return
+            min_quantity = round(MIN_QTY / bid_price, 8)
+            quantity_base = round_dwn(balance_base, precision)
 
-        quantity_quote = quantity_base * bid_price
-
-        if check_quantity(symbol, min_quantity, balance_base, min_notional,
-                          quantity_quote, base, quantity_base, base):
-            print('quantity_base', quantity_base)
+        if balance_base > min_quantity:
             return quantity_base
+        else:
+            to_general_log(symbol, 'Not enough balance. You have {} {}, but required {} {} at least'
+                           .format("{0:.8f}".format(balance_base), base, "{0:.8f}".format(min_quantity), base))
+
+
+def get_price_change_percent_difference(symbol):
+    price_change_percents = get_price_change_percent(symbol)
+    first = float(price_change_percents[str(min(list(int(x) for x in price_change_percents.keys())))])
+    last = float(price_change_percents[str(max(list(int(x) for x in price_change_percents.keys())))])
+    return round(max(first, last) - min(first, last), 3)
 
 
 def save_trade(signal_type, signal_id, order, trade_type):
@@ -255,6 +286,7 @@ def save_trade(signal_type, signal_id, order, trade_type):
             type=trade_type,
             rsi_5m=get_rsi_value(order['symbol'], '5M'),
             rsi_1h=get_rsi_value(order['symbol'], '1H'),
+            price_change_percent_difference=get_price_change_percent(order['symbol']),
             order_timestamp=order['transactTime'],
             date_create=int(time.time())
         )
@@ -309,3 +341,41 @@ def is_order_filled(exchange, order_id):
     orders = get_orders_info(exchange)
     if str(order_id) in orders:
         return orders[str(order_id)]['status']
+
+
+def init_price_change_percent(symbol):
+    DATABASE.set(symbol + ':' + PRICE_CHANGE_PERCENT, json.dumps({}))
+
+
+def get_price_change_percent(symbol):
+    return json.loads(DATABASE.get(symbol + ':' + PRICE_CHANGE_PERCENT))
+
+
+def set_price_change_percent(symbol, values):
+    DATABASE.set(symbol + ':' + PRICE_CHANGE_PERCENT, json.dumps(values))
+
+
+def update_price_change_percent(symbol, value):
+    price_change_percents = json.loads(DATABASE.get(symbol + ':' + PRICE_CHANGE_PERCENT))
+    remove = []
+    for price_change_percent in price_change_percents:
+        if int(price_change_percent) + PRICE_CHANGE_PERCENT_DIFFERENCE_TIME_RANGE < int(time.time()):
+            remove.append(price_change_percent)
+
+    for x in remove:
+        price_change_percents.pop(x)
+
+    price_change_percents.update({int(time.time()): value})
+    set_price_change_percent(symbol, price_change_percents)
+    # if symbol == 'BNBBTC':
+    #     print(symbol, len(price_change_percents), price_change_percents)
+
+
+# print(get_price_change_percent_difference('BNBBTC'))
+# print(normalize_symbol('BNB', 'TUSD'))
+# print(round_up(2.334, 2))
+# print(get_quantity('BNBBTC', 'buy'))
+# print(get_quantity('LTCBNB', 'buy'))
+# print(get_quantity('BNBBTC', 'sell'))
+# print(get_quantity('LTCBNB', 'sell'))
+# print(get_current_price('BNBBTC', 'ask'))
