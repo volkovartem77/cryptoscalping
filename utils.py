@@ -286,7 +286,7 @@ def save_trade(signal_type, signal_id, order, trade_type):
             type=trade_type,
             rsi_5m=get_rsi_value(order['symbol'], '5M'),
             rsi_1h=get_rsi_value(order['symbol'], '1H'),
-            price_change_percent_difference=get_price_change_percent(order['symbol']),
+            price_change_percent_difference=get_price_change_percent_difference(order['symbol']),
             order_timestamp=order['transactTime'],
             date_create=int(time.time())
         )
