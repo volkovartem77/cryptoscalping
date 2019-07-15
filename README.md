@@ -42,6 +42,7 @@ sudo chown redis:redis /var/lib/redis
 sudo pip install virtualenv
 virtualenv -p /usr/bin/python3.6 ~/cryptoscalping_btc/venv
 cd ~/cryptoscalping_btc; . venv/bin/activate
+sudo nano project.conf
 pip install -r requirements.txt
 python configure.py
 deactivate

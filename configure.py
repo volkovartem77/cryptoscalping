@@ -4,7 +4,7 @@ from config import CONF_PATH, MARKET, PROJECT_PATH, PROJECT_FOLDER
 
 f = open(CONF_PATH, "w")
 text = ''
-programs = ['wsBinance', 'wsBinanceBalance', 'pusher', 'monitor', 'notification']
+programs = ['wsBinance1', 'wsBinance2', 'wsBinanceBalance', 'pusher', 'monitor', 'notification']
 for program_name in programs:
     block = f'''
 [program:{program_name + MARKET}]

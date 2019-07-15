@@ -5,22 +5,8 @@ import traceback
 
 import websocket
 
-from config import DATABASE, BINANCE, EXCHANGE_INFO, TICKERS, RUN_MONITOR_FLAG, SYMBOLS
-from utils import to_general_log, update_price_change_percent, init_price_change_percent
-
-
-def mem_cache_init_pusher():
-    exchange_info = BINANCE.get_exchange_info()
-    if exchange_info is not None:
-        DATABASE.set(EXCHANGE_INFO, json.dumps(exchange_info))
-        print('exchange_info', len(exchange_info), exchange_info)
-
-    tickers = BINANCE.get_ticker()
-    if tickers is not None:
-        DATABASE.set(TICKERS, json.dumps(tickers))
-        print('tickers', len(tickers), tickers)
-
-    time.sleep(1)
+from config import DATABASE, BINANCE, RUN_MONITOR_FLAG1, SYMBOLS
+from utils import to_general_log, update_price_change_percent, init_price_change_percent, mem_cache_init_pusher
 
 
 def mem_cache_init(symbol):
@@ -84,40 +70,40 @@ def on_message(ws, message):
 
 
 def on_error(ws, error):
-    print(error)
+    to_general_log('wsBinance', f'{error}')
 
 
 def on_close(ws):
     print("### closed ###")
-    DATABASE.set(RUN_MONITOR_FLAG, 'False')
+    DATABASE.set(RUN_MONITOR_FLAG1, 'False')
 
 
 def on_open(ws):
     print('### opened ###')
     mem_cache_init_pusher()
-    for symbol in SYMBOLS:
+    for symbol in SYMBOLS[:100]:
         init_price_change_percent(symbol)
         mem_cache_init(symbol)
-    DATABASE.set(RUN_MONITOR_FLAG, 'True')
+    DATABASE.set(RUN_MONITOR_FLAG1, 'True')
     print('### monitor is allowed ###')
 
 
 def launch():
     while True:
-        print('start websocket Binance')
-        DATABASE.set(RUN_MONITOR_FLAG, 'False')
+        to_general_log('wsBinance', 'start websocket Binance')
+        DATABASE.set(RUN_MONITOR_FLAG1, 'False')
         time.sleep(1)
 
         try:
             subs = ''
             count = 0
-            for symbol in SYMBOLS:
+            for symbol in SYMBOLS[:100]:
                 subs += symbol.lower() + '@kline_1h/'
                 subs += symbol.lower() + '@kline_5m/'
                 subs += symbol.lower() + '@ticker/'
                 count += 1
             if subs != '':
-                print(f'{count} pairs')
+                to_general_log('wsBinance', f'{count} pairs')
                 ws = websocket.WebSocketApp(
                     "wss://stream.binance.com:9443/stream?streams={}".format(subs.strip('/')),
                     on_open=on_open,

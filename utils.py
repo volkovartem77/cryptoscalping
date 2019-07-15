@@ -10,7 +10,8 @@ from pyti.stochrsi import stochrsi as rsi
 from pyti.simple_moving_average import simple_moving_average as sma
 
 from config import ERR_LOG_PATH, GENERAL_LOG, LOG_LENGTH, TICKERS, DATABASE, RSI_PERIOD, PREF_WALL, VOLUME_THRESHOLD, \
-    EXCHANGE_INFO, BALANCE, MIN_QTY, ORDERS_INFO, PRICE_CHANGE_PERCENT, PRICE_CHANGE_PERCENT_DIFFERENCE_TIME_RANGE
+    EXCHANGE_INFO, BALANCE, MIN_QTY, ORDERS_INFO, PRICE_CHANGE_PERCENT, PRICE_CHANGE_PERCENT_DIFFERENCE_TIME_RANGE, \
+    BINANCE
 from models import Trade
 
 
@@ -369,6 +370,20 @@ def update_price_change_percent(symbol, value):
     set_price_change_percent(symbol, price_change_percents)
     # if symbol == 'BNBBTC':
     #     print(symbol, len(price_change_percents), price_change_percents)
+
+
+def mem_cache_init_pusher():
+    exchange_info = BINANCE.get_exchange_info()
+    if exchange_info is not None:
+        DATABASE.set(EXCHANGE_INFO, json.dumps(exchange_info))
+        print('exchange_info', len(exchange_info), exchange_info)
+
+    tickers = BINANCE.get_ticker()
+    if tickers is not None:
+        DATABASE.set(TICKERS, json.dumps(tickers))
+        print('tickers', len(tickers), tickers)
+
+    time.sleep(1)
 
 
 # print(get_price_change_percent_difference('BNBBTC'))

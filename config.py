@@ -51,13 +51,14 @@ PERCENT_TP = get_preferences()['percent_tp']
 PERCENT_SL = get_preferences()['percent_sl']
 
 # Mem cache keys
-GENERAL_LOG = 'general_log' + PREF_WALL
-TICKERS = 'tickers' + PREF_WALL
-EXCHANGE_INFO = 'exchange_info' + PREF_WALL
-BALANCE = 'BinanceBalance' + PREF_WALL
-RUN_MONITOR_FLAG = 'run_monitor' + MARKET
-ORDERS_INFO = 'ORDERS_INFO' + PREF_WALL
-PRICE_CHANGE_PERCENT = 'PRICE_CHANGE_PERCENT' + PREF_WALL
+GENERAL_LOG = 'general_log' + MARKET
+TICKERS = 'tickers' + MARKET
+EXCHANGE_INFO = 'exchange_info' + MARKET
+BALANCE = 'BinanceBalance' + MARKET
+RUN_MONITOR_FLAG1 = 'run_monitor1' + MARKET
+RUN_MONITOR_FLAG2 = 'run_monitor1' + MARKET
+ORDERS_INFO = 'ORDERS_INFO' + MARKET
+PRICE_CHANGE_PERCENT = 'PRICE_CHANGE_PERCENT' + MARKET
 
 # Logging
 LOG_PATH = PROJECT_PATH + 'log/'

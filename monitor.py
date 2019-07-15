@@ -5,13 +5,15 @@ import traceback
 import models
 from config import *
 from trade import place_pending_order
-from utils import get_candles, get_current_candle, get_ma_value, is_allowed, get_pip, get_current_price, \
-    get_precision, to_general_log, to_err_log, clear_general_log, init_price_change_percent
+from utils import get_candles, get_current_candle, get_ma_value, is_allowed, get_pip, get_precision, to_general_log, \
+    to_err_log, clear_general_log
 
 
 def is_allowed_to_run():
-    run_monitor = DATABASE.get(RUN_MONITOR_FLAG)
-    return False if run_monitor is None or run_monitor == 'False' else True
+    run_monitor1 = DATABASE.get(RUN_MONITOR_FLAG1)
+    run_monitor2 = DATABASE.get(RUN_MONITOR_FLAG2)
+    return False if (run_monitor1 is None or run_monitor1 == 'False'
+                     or run_monitor2 is None or run_monitor2 == 'False') else True
 
 
 def check_the_last_order(symbol, side, price):
@@ -126,7 +128,7 @@ def launcher():
     clear_general_log()
 
     while not is_allowed_to_run():
-        print('Waiting...')
+        # to_general_log('Bot', 'monitor waiting...')
         time.sleep(5)
 
     for symbol in SYMBOLS:
