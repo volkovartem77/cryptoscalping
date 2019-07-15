@@ -70,7 +70,9 @@ You can put all these commands at once
 **For BTC**
 
 ```
-sudo supervisorctl start wsBinanceBTC
+sudo supervisorctl start wsBinance1BTC
+sudo sleep 5
+sudo supervisorctl start wsBinance2BTC
 sudo sleep 5
 sudo supervisorctl start wsBinanceBalanceBTC
 sudo sleep 1
@@ -87,7 +89,9 @@ sudo supervisorctl status
 
 **For BNB**
 ```
-sudo supervisorctl start wsBinanceBNB
+sudo supervisorctl start wsBinance1BNB
+sudo sleep 5
+sudo supervisorctl start wsBinance2BNB
 sudo sleep 5
 sudo supervisorctl start wsBinanceBalanceBNB
 sudo sleep 1
