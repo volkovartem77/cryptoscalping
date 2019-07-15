@@ -19,7 +19,7 @@ def push_market_info():
             exchange_info = BINANCE.get_exchange_info()
             if exchange_info is not None:
                 DATABASE.set(EXCHANGE_INFO, json.dumps(exchange_info))
-                print('exchange_info', len(exchange_info), exchange_info)
+                # print('exchange_info', len(exchange_info), exchange_info)
             t_mi = time.time()
             time.sleep(0.5)
     except requests.exceptions.ConnectionError as e:
@@ -34,7 +34,7 @@ def push_volume():
             tickers = BINANCE.get_ticker()
             if tickers is not None:
                 DATABASE.set(TICKERS, json.dumps(tickers))
-                print('tickers', len(tickers), tickers)
+                # print('tickers', len(tickers), tickers)
             t_volume = time.time()
             time.sleep(0.5)
     except requests.exceptions.ConnectionError as e:
