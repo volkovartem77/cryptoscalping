@@ -70,7 +70,7 @@ def on_message(ws, message):
 
 
 def on_error(ws, error):
-    to_general_log('wsBinance', f'{error}')
+    to_general_log('wsBinance2', f'{error}')
 
 
 def on_close(ws):
@@ -90,7 +90,7 @@ def on_open(ws):
 
 def launch():
     while True:
-        to_general_log('wsBinance', 'start websocket Binance')
+        to_general_log('wsBinance2', 'start websocket Binance')
         DATABASE.set(RUN_MONITOR_FLAG2, 'False')
         time.sleep(1)
 
@@ -103,7 +103,7 @@ def launch():
                 subs += symbol.lower() + '@ticker/'
                 count += 1
             if subs != '':
-                to_general_log('wsBinance', f'{count} pairs')
+                to_general_log('wsBinance2', f'{count} pairs')
                 ws = websocket.WebSocketApp(
                     "wss://stream.binance.com:9443/stream?streams={}".format(subs.strip('/')),
                     on_open=on_open,
@@ -112,7 +112,7 @@ def launch():
                     on_close=on_close)
                 ws.run_forever()
         except:
-            print('wsBinance Error: websocket failed')
+            print('wsBinance2 Error: websocket failed')
             print(traceback.format_exc())
 
 

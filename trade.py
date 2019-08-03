@@ -4,7 +4,7 @@ import traceback
 
 from requests.exceptions import ConnectionError
 
-from config import IGNORE_SL, BINANCE
+from config import IGNORE_SL, BINANCE, PERCENT_SL, PERCENT_TP
 from utils import get_current_candle, get_ma_value, get_current_price, get_quantity, save_trade, get_qty, \
     to_general_log, is_order_filled, remove_orders_info
 
@@ -125,7 +125,12 @@ def get_opposite_side(side):
     return 'sell' if side == 'buy' else 'buy'
 
 
-def place_pending_order(symbol, signal_side, entrance_point, stop_loss, take_profit, precision):
+def new_signal_report(symbol, side, entrance_point, stop_loss, take_profit):
+    text = 'NEW SIGNAL > {} {} at {}, SL: {}, TP: {}'.format(side, symbol, entrance_point, stop_loss, take_profit)
+    to_general_log(symbol, text)
+
+
+def place_pending_order(symbol, signal_side, entrance_point, precision, price_precision):
     try:
         global signal_number
         signal_id = '{}_{}'.format(symbol.lower(), signal_number)
@@ -136,6 +141,17 @@ def place_pending_order(symbol, signal_side, entrance_point, stop_loss, take_pro
 
             # entrance point monitoring
             if is_entrance(symbol, signal_side, entrance_point):
+                signal_side = get_opposite_side(signal_side)
+
+                if signal_side == 'buy':
+                    stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
+                    take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
+                else:
+                    stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
+                    take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
+
+                new_signal_report(symbol, signal_side.upper(), entrance_point, stop_loss, take_profit)
+
                 quantity = get_quantity(symbol, signal_side)
                 if quantity is None:
                     return
@@ -164,8 +180,8 @@ def place_pending_order(symbol, signal_side, entrance_point, stop_loss, take_pro
                                 to_general_log(symbol, 'get_qty: qty {}'.format(qty))
 
                                 current_sl_order = place_limit_order(symbol, order_side, qty, stop_loss, 'StopLoss')
-                            else:
-                                to_general_log(symbol, 'Skip stop loss for buy signal')
+                            # else:
+                            #     to_general_log(symbol, 'Skip stop loss for buy signal')
 
                         elif is_order_filled('Binance', current_sl_order['orderId']):
                             remove_orders_info('Binance', current_sl_order['orderId'])
@@ -224,7 +240,7 @@ def place_pending_order(symbol, signal_side, entrance_point, stop_loss, take_pro
 # print(symbol, side, 'entrance_point', entrance_point,
 #       'stop_loss', stop_loss,
 #       'take_profit', take_profit, 'precision', precision)
-# place_pending_order(symbol, side, entrance_point, stop_loss, take_profit, precision)
+# place_pending_order(symbol, side, entrance_point, stop_loss, take_profit, prSELLecision)
 #
 # print('---------------------------')
 # print(is_close_to_stop_loss(symbol, side, entrance_point, stop_loss, 80))

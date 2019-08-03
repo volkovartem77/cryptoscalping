@@ -31,6 +31,11 @@ def check_the_last_order(symbol, side, price):
     return True
 
 
+def new_signal_report(symbol, side, entrance_point, stop_loss, take_profit):
+    text = 'NEW SIGNAL > {} {} at {}, SL: {}, TP: {}'.format(side, symbol, entrance_point, stop_loss, take_profit)
+    to_general_log(symbol, text)
+
+
 def last_bars_extremum(symbol, number, side):
     last_candles = get_candles(symbol, '5M')[499 - number:499]
 
@@ -87,8 +92,12 @@ def launch(symbol):
 
                     if current_candle_close < ma8:
                         entrance_point = round(last_bars_extremum(symbol, 5, 'buy') + (30 * pip), price_precision)
+                        stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
+                        take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
 
-                        place_pending_order(symbol, 'buy', entrance_point, precision, price_precision)
+                        new_signal_report(symbol, 'BUY', entrance_point, stop_loss, take_profit)
+
+                        place_pending_order(symbol, 'buy', entrance_point, stop_loss, take_profit, precision)
                         break
 
             # looking for SELL signal
@@ -102,8 +111,12 @@ def launch(symbol):
 
                     if current_candle_open > ma8:
                         entrance_point = round(last_bars_extremum(symbol, 5, 'sell') - (30 * pip), price_precision)
+                        stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
+                        take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
 
-                        place_pending_order(symbol, 'sell', entrance_point, precision, price_precision)
+                        new_signal_report(symbol, 'SELL', entrance_point, stop_loss, take_profit)
+
+                        place_pending_order(symbol, 'sell', entrance_point, stop_loss, take_profit, precision)
                         break
 
             time.sleep(1)
