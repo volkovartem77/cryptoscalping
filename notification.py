@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 
 from config import ROOT_PASS, E_LOGIN, E_ADDRESS, E_PASS, PREF_WALL, E_SCHEDULE, E_TIME_RANGE
 from database import get_trades, convert, get_total_profit, get_total_fees
-from utils import split_symbol, get_rsi_value
+from utils import split_symbol
 
 
 def get_supervisor_status():

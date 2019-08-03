@@ -262,7 +262,7 @@ def get_price_change_percent_difference(symbol):
     price_change_percents = get_price_change_percent(symbol)
     first = float(price_change_percents[str(min(list(int(x) for x in price_change_percents.keys())))])
     last = float(price_change_percents[str(max(list(int(x) for x in price_change_percents.keys())))])
-    return round(max(first, last) - min(first, last), 3)
+    return round(last - first, 3)
 
 
 def save_trade(signal_type, signal_id, order, trade_type):

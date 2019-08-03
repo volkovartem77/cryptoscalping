@@ -130,79 +130,87 @@ def new_signal_report(symbol, side, entrance_point, stop_loss, take_profit):
     to_general_log(symbol, text)
 
 
-def place_pending_order(symbol, signal_side, precision, price_precision):
+def place_pending_order(symbol, signal_side, entrance_point, precision, price_precision):
     try:
         global signal_number
         signal_id = '{}_{}'.format(symbol.lower(), signal_number)
 
-        if signal_side == 'buy':
-            entrance_point = get_current_price(symbol, 'ask')
-            stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
-            take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
-        else:
-            entrance_point = get_current_price(symbol, 'bid')
-            stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
-            take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
-
-        new_signal_report(symbol, signal_side.upper(), entrance_point, stop_loss, take_profit)
-
-        quantity = get_quantity(symbol, signal_side)
-        if quantity is None:
-            return
-        open_order = place_market_order(symbol, signal_side, quantity, 'Entry')
-        signal_number += 1
-        save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, open_order, 'Entry')
-        cumulative_quote_qty = float(open_order['cummulativeQuoteQty'])
-        order_side = get_opposite_side(signal_side)
-
-        current_sl_order = 0
-        current_tp_order = 0
-
         while True:
+            if is_cancel(symbol, signal_side):
+                break
 
-            # stop loss monitoring
-            if is_close_to_stop_loss(symbol, signal_side, entrance_point, stop_loss, 80):
-                if current_sl_order == 0:
+            # entrance point monitoring
+            if is_entrance(symbol, signal_side, entrance_point):
+                # signal_side = get_opposite_side(signal_side)
 
-                    # cancel existed TP order
-                    if current_tp_order != 0:
-                        cancel_limit_order(symbol, order_side, current_tp_order['orderId'], 'TakeProfit')
+                if signal_side == 'buy':
+                    stop_loss = round(entrance_point * (1 - (PERCENT_SL / 100)), price_precision)
+                    take_profit = round(entrance_point * (1 + (PERCENT_TP / 100)), price_precision)
+                else:
+                    stop_loss = round(entrance_point * (1 + (PERCENT_SL / 100)), price_precision)
+                    take_profit = round(entrance_point * (1 - (PERCENT_TP / 100)), price_precision)
 
-                    # place SL limit order
-                    if execute_stop_loss(symbol, signal_side):
-                        qty = get_qty(symbol, signal_side, quantity, cumulative_quote_qty, stop_loss, precision)
-                        to_general_log(symbol, 'get_qty: qty {}'.format(qty))
+                new_signal_report(symbol, signal_side.upper(), entrance_point, stop_loss, take_profit)
 
-                        current_sl_order = place_limit_order(symbol, order_side, qty, stop_loss, 'StopLoss')
-                    # else:
-                    #     to_general_log(symbol, 'Skip stop loss for buy signal')
+                quantity = get_quantity(symbol, signal_side)
+                if quantity is None:
+                    return
+                open_order = place_market_order(symbol, signal_side, quantity, 'Entry')
+                signal_number += 1
+                save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, open_order, 'Entry')
+                cumulative_quote_qty = float(open_order['cummulativeQuoteQty'])
+                order_side = get_opposite_side(signal_side)
 
-                elif is_order_filled('Binance', current_sl_order['orderId']):
-                    remove_orders_info('Binance', current_sl_order['orderId'])
-                    to_general_log(symbol, '{} Limit order filled (StopLoss)'.format(order_side))
-                    save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, current_sl_order, 'SL')
-                    break
+                current_sl_order = 0
+                current_tp_order = 0
 
-                    # take profit monitoring
-            if is_close_to_take_profit(symbol, signal_side, entrance_point, take_profit, 80):
-                if current_tp_order == 0:
+                while True:
 
-                    # cancel existed SL order
-                    if current_sl_order != 0:
-                        cancel_limit_order(symbol, order_side, current_sl_order['orderId'], 'StopLoss')
+                    # stop loss monitoring
+                    if is_close_to_stop_loss(symbol, signal_side, entrance_point, stop_loss, 80):
+                        if current_sl_order == 0:
 
-                    # place TP limit order
-                    qty = get_qty(symbol, signal_side, quantity, cumulative_quote_qty, take_profit, precision)
-                    to_general_log(symbol, 'get_qty: qty {}'.format(qty))
+                            # cancel existed TP order
+                            if current_tp_order != 0:
+                                cancel_limit_order(symbol, order_side, current_tp_order['orderId'], 'TakeProfit')
 
-                    current_tp_order = place_limit_order(symbol, order_side, qty, take_profit, 'TakeProfit')
+                            # place SL limit order
+                            if execute_stop_loss(symbol, signal_side):
+                                qty = get_qty(symbol, signal_side, quantity, cumulative_quote_qty, stop_loss, precision)
+                                to_general_log(symbol, 'get_qty: qty {}'.format(qty))
 
-                elif is_order_filled('Binance', current_tp_order['orderId']):
-                    remove_orders_info('Binance', current_tp_order['orderId'])
-                    to_general_log(symbol, '{} Limit order filled (TakeProfit)'.format(order_side))
-                    save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, current_tp_order, 'TP')
-                    break
-            time.sleep(0.3)
+                                current_sl_order = place_limit_order(symbol, order_side, qty, stop_loss, 'StopLoss')
+                            # else:
+                            #     to_general_log(symbol, 'Skip stop loss for buy signal')
+
+                        elif is_order_filled('Binance', current_sl_order['orderId']):
+                            remove_orders_info('Binance', current_sl_order['orderId'])
+                            to_general_log(symbol, '{} Limit order filled (StopLoss)'.format(order_side))
+                            save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, current_sl_order, 'SL')
+                            break
+
+                            # take profit monitoring
+                    if is_close_to_take_profit(symbol, signal_side, entrance_point, take_profit, 80):
+                        if current_tp_order == 0:
+
+                            # cancel existed SL order
+                            if current_sl_order != 0:
+                                cancel_limit_order(symbol, order_side, current_sl_order['orderId'], 'StopLoss')
+
+                            # place TP limit order
+                            qty = get_qty(symbol, signal_side, quantity, cumulative_quote_qty, take_profit, precision)
+                            to_general_log(symbol, 'get_qty: qty {}'.format(qty))
+
+                            current_tp_order = place_limit_order(symbol, order_side, qty, take_profit, 'TakeProfit')
+
+                        elif is_order_filled('Binance', current_tp_order['orderId']):
+                            remove_orders_info('Binance', current_tp_order['orderId'])
+                            to_general_log(symbol, '{} Limit order filled (TakeProfit)'.format(order_side))
+                            save_trade('{}_SIGNAL'.format(signal_side.upper()), signal_id, current_tp_order, 'TP')
+                            break
+                    time.sleep(0.3)
+                break
+            time.sleep(.1)
     except:
         to_general_log(symbol, traceback.format_exc())
 
