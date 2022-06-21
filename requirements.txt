@@ -11,7 +11,7 @@ dateparser==0.7.1
 hyperlink==19.0.0
 idna==2.8
 incremental==17.5.0
-numpy==1.16.4
+numpy==1.22.0
 pandas==0.24.2
 peewee==3.9.6
 pyasn1==0.4.5
